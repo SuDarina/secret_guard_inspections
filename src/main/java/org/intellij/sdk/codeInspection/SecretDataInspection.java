@@ -32,7 +32,9 @@ final class SecretDataInspection extends AbstractBaseJavaLocalInspectionTool {
         if (rOperand == null || isNullLiteral(lOperand) || isNullLiteral(rOperand)) {
           return;
         }
-        if ((isStringType(lOperand) || isStringType(rOperand)) && !Objects.equals(rOperand.getText(), "\"***\"")) {
+        if ((isStringType(lOperand) || isStringType(rOperand))
+                && checkVarName(lOperand.getText())
+                && !Objects.equals(rOperand.getText(), "\"***\"")) {
           holder.registerProblem(expression,
                   InspectionBundle.message("inspection.comparing.string.references.problem.descriptor"),
                   myQuickFix);
@@ -46,8 +48,7 @@ final class SecretDataInspection extends AbstractBaseJavaLocalInspectionTool {
         }
 
         if (node.getValue() instanceof String && PsiVariable.class.isAssignableFrom(node.getParent().getClass())
-          && checkVarName(((PsiVariable) node.getParent()).getName()) && !Objects.equals(node.getValue(), "***")) {
-          System.out.println(node.getValue());
+          && checkVarName(Objects.requireNonNull(((PsiVariable) node.getParent()).getName())) && !Objects.equals(node.getValue(), "***")) {
           holder.registerProblem(node,
                   InspectionBundle.message("inspection.comparing.string.references.problem.descriptor"),
                   myQuickFix2);
@@ -69,7 +70,7 @@ final class SecretDataInspection extends AbstractBaseJavaLocalInspectionTool {
       }
 
       private static boolean checkVarName(String varName)  {
-        return Objects.equals(varName, "password");
+        return varName.matches(".*(?i)(pass|login|api_key).*");
       }
     };
   }
